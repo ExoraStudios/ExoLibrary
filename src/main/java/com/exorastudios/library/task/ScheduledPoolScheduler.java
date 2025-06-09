@@ -79,6 +79,7 @@ public class ScheduledPoolScheduler implements ExoScheduler.ScheduledThreadPool 
                 task.run();
             } catch (Exception e) {
                 plugin.getLogger().warning("Task in scheduled pool '%s' failed: %s".formatted(name, e.getMessage()));
+                e.printStackTrace();
             }
         };
     }
@@ -89,6 +90,7 @@ public class ScheduledPoolScheduler implements ExoScheduler.ScheduledThreadPool 
                 return task.call();
             } catch (Exception e) {
                 plugin.getLogger().warning("Task in scheduled pool '%s' failed: %s".formatted(name, e.getMessage()));
+                e.printStackTrace();
                 throw e;
             }
         };

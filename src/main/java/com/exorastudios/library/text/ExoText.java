@@ -1,148 +1,94 @@
 package com.exorastudios.library.text;
 
-import org.jetbrains.annotations.Nullable;
+import net.md_5.bungee.api.ChatColor;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public final class ExoText {
-
-    private static final Pattern hexPattern = Pattern.compile("<#[0-9a-fA-F]{6}>");
-    private static final Map<String, String> tagToLegacy;
-
-    static {
-        Map<String, String> TAGS = new HashMap<>();
-
-        TAGS.put("<black>", "§0");
-        TAGS.put("<dark_blue>", "§1");
-        TAGS.put("<dark_green>", "§2");
-        TAGS.put("<dark_aqua>", "§3");
-        TAGS.put("<dark_red>", "§4");
-        TAGS.put("<dark_purple>", "§5");
-        TAGS.put("<gold>", "§6");
-        TAGS.put("<gray>", "§7");
-        TAGS.put("<dark_gray>", "§8");
-        TAGS.put("<blue>", "§9");
-        TAGS.put("<green>", "§a");
-        TAGS.put("<aqua>", "§b");
-        TAGS.put("<red>", "§c");
-        TAGS.put("<light_purple>", "§d");
-        TAGS.put("<yellow>", "§e");
-        TAGS.put("<white>", "§f");
-
-
-        TAGS.put("<bold>", "§l");
-        TAGS.put("<b>", "§l");
-        TAGS.put("<italic>", "§o");
-        TAGS.put("<i>", "§o");
-        TAGS.put("<em>", "§o");
-        TAGS.put("<underline>", "§n");
-        TAGS.put("<u>", "§n");
-        TAGS.put("<strikethrough>", "§m");
-        TAGS.put("<st>", "§m");
-        TAGS.put("<obfuscated>", "§k");
-        TAGS.put("<obf>", "§k");
-        TAGS.put("<magic>", "§k");
-        TAGS.put("<reset>", "§r");
-
-
-        String[] resetTags = {
-                "</bold>", "</b>", "</italic>", "</i>", "</em>", "</underline>", "</u>",
-                "</strikethrough>", "</st>", "</obfuscated>", "</obf>", "</magic>", "</color>",
-                "</black>", "</dark_blue>", "</dark_green>", "</dark_aqua>", "</dark_red>",
-                "</dark_purple>", "</gold>", "</gray>", "</dark_gray>", "</blue>", "</green>",
-                "</aqua>", "</red>", "</light_purple>", "</yellow>", "</white>"
-        };
-        for (String tag : resetTags) {
-            TAGS.put(tag, "§r");
-        }
-
-        tagToLegacy = Collections.unmodifiableMap(TAGS);
-    }
 
     private ExoText() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static String parse(@Nullable String text) {
-        if (text == null || text.isEmpty()) {
-            return text;
+    private static final Map<String, String> MINI_TO_LEGACY = new HashMap<>();
+    private static final Pattern MINI_TAG_PATTERN = Pattern.compile("<(/?)([a-zA-Z_]+)>");
+    private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
+
+    static {
+
+        MINI_TO_LEGACY.put("black", "0");
+        MINI_TO_LEGACY.put("dark_blue", "1");
+        MINI_TO_LEGACY.put("dark_green", "2");
+        MINI_TO_LEGACY.put("dark_aqua", "3");
+        MINI_TO_LEGACY.put("dark_red", "4");
+        MINI_TO_LEGACY.put("dark_purple", "5");
+        MINI_TO_LEGACY.put("gold", "6");
+        MINI_TO_LEGACY.put("gray", "7");
+        MINI_TO_LEGACY.put("dark_gray", "8");
+        MINI_TO_LEGACY.put("blue", "9");
+        MINI_TO_LEGACY.put("green", "a");
+        MINI_TO_LEGACY.put("aqua", "b");
+        MINI_TO_LEGACY.put("red", "c");
+        MINI_TO_LEGACY.put("light_purple", "d");
+        MINI_TO_LEGACY.put("yellow", "e");
+        MINI_TO_LEGACY.put("white", "f");
+
+
+        MINI_TO_LEGACY.put("reset", "r");
+        MINI_TO_LEGACY.put("bold", "l");
+        MINI_TO_LEGACY.put("italic", "o");
+        MINI_TO_LEGACY.put("underlined", "n");
+        MINI_TO_LEGACY.put("strikethrough", "m");
+        MINI_TO_LEGACY.put("obfuscated", "k");
+    }
+
+    public static String parse(String message) {
+        if (message == null || message.isEmpty()) return "";
+
+
+        message = ChatColor.translateAlternateColorCodes('&', message);
+
+
+        Matcher hexMatcher = HEX_PATTERN.matcher(message);
+        while (hexMatcher.find()) {
+            String hex = hexMatcher.group();
+            ChatColor color = ChatColor.of(hex.substring(1));
+            message = message.replace(hex, color.toString());
         }
 
-        StringBuilder result = new StringBuilder(text.length());
-        int i = 0;
 
-        while (i < text.length()) {
-            char c = text.charAt(i);
+        StringBuilder output = new StringBuilder();
+        Matcher miniMatcher = MINI_TAG_PATTERN.matcher(message);
+        int lastEnd = 0;
 
-            if (c == '<' && i + 1 < text.length()) {
+        for (; miniMatcher.find(); lastEnd = miniMatcher.end()) {
+            output.append(message, lastEnd, miniMatcher.start());
 
-                String hex = tryParseHex(text, i);
-                if (hex != null) {
-                    result.append(hex);
-                    i += 8;
-                    continue;
-                }
+            boolean isClosing = miniMatcher.group(1).equals("/");
+            String tag = miniMatcher.group(2).toLowerCase();
 
-
-                String tag = tryParseTag(text, i);
-                if (tag != null) {
-                    result.append(tagToLegacy.getOrDefault(tag, "<"));
-                    i += tag.length();
-                    if (!tagToLegacy.containsKey(tag)) {
-                        i--;
-                    }
-                    continue;
-                }
-
-                result.append(c);
-                i++;
-            } else if (c == '&' && i + 1 < text.length()) {
-                char next = text.charAt(i + 1);
-                if (isLegacyCode(next)) {
-                    result.append('§').append(Character.toLowerCase(next));
-                    i += 2;
-                } else {
-                    result.append(c);
-                    i++;
-                }
+            if (isClosing) {
+                output.append("§r");
             } else {
-                result.append(c);
-                i++;
+                String legacyCode = MINI_TO_LEGACY.get(tag);
+                if (legacyCode != null) {
+                    output.append("§").append(legacyCode);
+                }
             }
         }
 
-        return result.toString();
+        output.append(message.substring(lastEnd));
+        return output.toString();
     }
 
-    private static @Nullable String tryParseHex(String text, int start) {
-        if (start + 8 > text.length() || text.charAt(start + 1) != '#') {
-            return null;
-        }
-        String substring = text.substring(start, Math.min(start + 9, text.length()));
-        if (!hexPattern.matcher(substring).matches()) {
-            return null;
-        }
-        StringBuilder hex = new StringBuilder(14).append('§').append('x');
-        for (int i = 2; i < 8; i++) {
-            hex.append('§').append(Character.toLowerCase(substring.charAt(i)));
-        }
-        return hex.toString();
-    }
-
-    private static @Nullable String tryParseTag(String text, int start) {
-        int end = text.indexOf('>', start + 1);
-        if (end == -1) {
-            return null;
-        }
-        String tag = text.substring(start, end + 1);
-        return tagToLegacy.containsKey(tag) ? tag : null;
-    }
-
-    private static boolean isLegacyCode(char c) {
-        c = Character.toLowerCase(c);
-        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'k' && c <= 'o') || c == 'r' || c == 'x';
+    public static List<String> parseList(List<String> list) {
+        if (list == null || list.isEmpty()) return Collections.emptyList();
+        return list.stream().map(ExoText::parse).collect(Collectors.toList());
     }
 }

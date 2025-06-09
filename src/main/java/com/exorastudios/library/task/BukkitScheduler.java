@@ -44,6 +44,7 @@ public class BukkitScheduler {
                 task.run();
             } catch (Exception e) {
                 plugin.getLogger().warning("Bukkit task failed: " + e.getMessage());
+                e.printStackTrace();
             }
         };
     }

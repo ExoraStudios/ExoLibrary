@@ -62,6 +62,7 @@ public class PoolScheduler implements ExoScheduler.ThreadPool {
                 task.run();
             } catch (Exception e) {
                 plugin.getLogger().warning("Task in pool '%s' failed: %s".formatted(name, e.getMessage()));
+                e.printStackTrace();
             }
         };
     }
@@ -72,6 +73,7 @@ public class PoolScheduler implements ExoScheduler.ThreadPool {
                 return task.call();
             } catch (Exception e) {
                 plugin.getLogger().warning("Task in pool '%s' failed: %s".formatted(name, e.getMessage()));
+                e.printStackTrace();
                 throw e;
             }
         };

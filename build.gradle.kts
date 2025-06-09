@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.exorastudios"
-version = "1.0.0"
+version = "5.0.0"
 java.sourceCompatibility = JavaVersion.VERSION_21
 
 repositories {
@@ -14,6 +14,9 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://repo.codemc.io/repository/maven-releases/")
     maven("https://repo.codemc.io/repository/maven-snapshots/")
+    maven("https://jitpack.io")
+    maven("https://maven.enginehub.org/repo/")
+    maven("https://repo.aikar.co/content/groups/aikar/")
     flatDir {
         dirs("libs")
     }
@@ -21,11 +24,14 @@ repositories {
 
 dependencies {
     implementation(files("libs/fastinv.jar"))
-
+    compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.9")
     compileOnly("io.papermc.paper:paper-api:1.21.1-R0.1-SNAPSHOT")
-
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
+    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.7.0")
+    compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.7.0")
 }
 
 tasks {
@@ -54,6 +60,7 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         relocate("fr.mrmicky.fastinv", "com.exorastudios.library.menu")
+        relocate("co.aikar.commands", "com.exorastudios.library.acf")
     }
 
     build {
