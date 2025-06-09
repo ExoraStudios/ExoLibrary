@@ -16,7 +16,6 @@ repositories {
     maven("https://repo.codemc.io/repository/maven-snapshots/")
     maven("https://jitpack.io")
     maven("https://maven.enginehub.org/repo/")
-    maven("https://repo.aikar.co/content/groups/aikar/")
     flatDir {
         dirs("libs")
     }
@@ -29,7 +28,6 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
     compileOnly("org.projectlombok:lombok:1.18.38")
     annotationProcessor("org.projectlombok:lombok:1.18.38")
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Core:2.7.0")
     compileOnly("com.fastasyncworldedit:FastAsyncWorldEdit-Bukkit:2.7.0")
 }
@@ -60,7 +58,6 @@ tasks {
     shadowJar {
         archiveClassifier.set("")
         relocate("fr.mrmicky.fastinv", "com.exorastudios.library.menu")
-        relocate("co.aikar.commands", "com.exorastudios.library.acf")
     }
 
     build {

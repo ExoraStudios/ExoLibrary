@@ -1,6 +1,5 @@
 package com.exorastudios.library;
 
-import co.aikar.commands.PaperCommandManager;
 import org.bukkit.Server;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
@@ -11,15 +10,13 @@ import org.jetbrains.annotations.NotNull;
 
 public abstract class ExoPlugin extends JavaPlugin {
 
-    private PaperCommandManager acfCommandManager;
-
     @Override
     public final void onLoad() {
         load();
     }
+
     @Override
     public final void onEnable() {
-        acfCommandManager = new PaperCommandManager(this);
         start();
     }
 
@@ -29,9 +26,7 @@ public abstract class ExoPlugin extends JavaPlugin {
     }
 
     protected void load() {}
-
     protected abstract void start();
-
     protected abstract void stop();
 
     @NotNull
@@ -56,17 +51,9 @@ public abstract class ExoPlugin extends JavaPlugin {
 
     public final void commands(@NotNull register... regster) {
         for (register b : regster) {
-            if (b.executor() instanceof co.aikar.commands.BaseCommand) {
-
-                acfCommandManager.registerCommand((co.aikar.commands.BaseCommand) b.executor());
-            } else {
-                PluginCommand cmd = getCommand(b.name());
-                if (cmd != null) {
-                    cmd.setExecutor(b.executor());
-                } else {
-                    getLogger().warning("Command '/" + b.name() + "' not found in plugin.yml.");
-                }
-            }
+            PluginCommand cmd = getCommand(b.name());
+            if (cmd != null) cmd.setExecutor(b.executor());
+            else getLogger().warning("Command '/" + b.name() + "' not found in plugin.yml.");
         }
     }
 
