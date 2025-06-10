@@ -14,6 +14,7 @@ public final class ExoMessage {
 
     private static String parsePlaceholders(String message, String... placeholders) {
         if (message == null) return "";
+
         if (placeholders != null && placeholders.length > 1) {
             Map<String, String> map = new HashMap<>();
             for (int i = 0; i < placeholders.length - 1; i += 2) {
